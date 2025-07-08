@@ -4,12 +4,10 @@ import time
 import mimetypes
 from pathlib import Path
 from dotenv import load_dotenv
-from google.genai import Client, types
+from google.genai import Client
 
-# Load environment variable for API key
 load_dotenv()
 client = Client(api_key=os.getenv("GEMINI_API_KEY"))
-
 
 def generate_thumbnail_from_frame(video_path, timestamp, output_name="frame_thumbnail.jpg"):
     """Extracts a single frame from a video at a specific timestamp and saves it as an image."""
@@ -26,6 +24,11 @@ def generate_thumbnail_from_frame(video_path, timestamp, output_name="frame_thum
     cap.release()
     
     if success:
+        valid_extensions = ['.jpg', '.jpeg', '.png']
+        ext = Path(output_name).suffix.lower()
+        if ext not in valid_extensions:
+            output_name = Path(output_name).stem + ".jpg"
+        
         output_path = Path.home() / "Downloads" / output_name
         cv2.imwrite(str(output_path), frame)
         print(f"[SUCCESS] Frame thumbnail saved to {output_path}")
@@ -39,22 +42,17 @@ def generate_thumbnail_using_gemini_from_video(video_path, output_name="ai_thumb
     """Uploads a video to Gemini and generates an AI-enhanced thumbnail."""
     print(f"[INFO] Uploading video: {video_path}")
 
-    # ✅ FIX: Re-introducing MIME type detection for extensionless temp files.
-    # The library requires this when it cannot guess the file type.
     mime_type, _ = mimetypes.guess_type(video_path)
     if not mime_type:
-        # Default to a common video format if detection fails.
         mime_type = "video/mp4"
         print(f"[WARN] Could not determine MIME type. Defaulting to '{mime_type}'.")
 
     try:
-        # Pass the manually determined mime_type to the uploader.
         video_file = client.files.upload(file=video_path, mime_type=mime_type)
     except Exception as e:
         print(f"[ERROR] Upload failed: {e}")
         return None
 
-    # Wait until processing is done
     print("[INFO] Waiting for video to finish processing...")
     while video_file.state.name == "PROCESSING":
         time.sleep(5)

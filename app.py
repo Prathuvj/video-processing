@@ -3,7 +3,7 @@ import tempfile
 from flask import Flask, request, jsonify
 from metadata_extraction import extract_video_metadata
 from format_conversion import convert_video_format
-from thumbnail_generation import  generate_thumbnail_from_frame, generate_thumbnail_using_gemini_from_video
+from thumbnail_generation import generate_thumbnail_from_frame, generate_thumbnail_using_gemini_from_video
 
 app = Flask(__name__)
 
@@ -19,7 +19,6 @@ def upload_video():
         metadata = extract_video_metadata(temp_file.name, file.filename)
     os.remove(temp_file.name)
     return jsonify(metadata)
-
 
 @app.route('/convert', methods=['POST'])
 def convert_video():
@@ -37,7 +36,6 @@ def convert_video():
     except Exception as e:
         return jsonify({'status': 'Failed', 'error': str(e)}), 500
 
-
 @app.route('/thumbnail', methods=['POST'])
 def generate_thumbnail():
     mode = request.form.get('mode')
@@ -49,7 +47,7 @@ def generate_thumbnail():
         with tempfile.NamedTemporaryFile(delete=False) as infile:
             file.save(infile.name)
             infile_path = infile.name
-        output_path = generate_thumbnail_from_frame(infile_path, timestamp, file.filename)
+        output_path = generate_thumbnail_from_frame(infile_path, timestamp, output_name="frame_thumbnail.jpg")
         return jsonify({'status': 'Successful' if output_path else 'Failed', 'file_path': output_path})
     
     elif mode == 'gemini':
@@ -64,7 +62,6 @@ def generate_thumbnail():
     
     else:
         return jsonify({'status': 'Failed', 'error': 'Invalid mode'}), 400
-
 
 if __name__ == '__main__':
     app.run(debug=True)
