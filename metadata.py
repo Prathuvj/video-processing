@@ -4,14 +4,20 @@ from moviepy.editor import VideoFileClip
 
 def extract_video_metadata(path):
     clip = VideoFileClip(path)
+    duration = round(clip.duration, 2)
+    clip.reader.close()
+    if clip.audio:
+        clip.audio.reader.close_proc()
+
     cap = cv2.VideoCapture(path)
     size = os.path.getsize(path)
     width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
     fps = cap.get(cv2.CAP_PROP_FPS)
     cap.release()
+
     return {
-        'Duration (s)': round(clip.duration, 2),
+        'Duration (s)': duration,
         'Resolution': f'{width}x{height}',
         'File Size (MB)': round(size / (1024 * 1024), 2),
         'Frame Rate (fps)': round(fps, 2),

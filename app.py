@@ -13,9 +13,13 @@ def upload_video():
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-        file.save(temp_file.name)
-        metadata = extract_video_metadata(temp_file.name)
-    os.remove(temp_file.name)
+        file_path = temp_file.name
+        file.save(file_path)
+    metadata = extract_video_metadata(file_path)
+    try:
+        os.remove(file_path)
+    except PermissionError:
+        pass
     return jsonify(metadata)
 
 if __name__ == '__main__':
