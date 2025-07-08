@@ -26,14 +26,18 @@ def upload_video():
 @app.route('/convert', methods=['POST'])
 def convert_video():
     if 'video' not in request.files or 'target_format' not in request.form:
-        return jsonify({'error': 'Video and target_format are required'}), 400
-    file = request.files['video']
-    target_format = request.form['target_format'].lower()
-    with tempfile.NamedTemporaryFile(delete=False) as input_file:
-        input_path = input_file.name
-        file.save(input_path)
-    output_path = convert_video_format(input_path, target_format)
-    return send_file(output_path, as_attachment=True, download_name=f"converted.{target_format}")
+        return jsonify({'status': 'Failed', 'error': 'Video and target_format are required'}), 400
+    try:
+        file = request.files['video']
+        original_filename = file.filename
+        target_format = request.form['target_format'].lower()
+        with tempfile.NamedTemporaryFile(delete=False) as input_file:
+            input_path = input_file.name
+            file.save(input_path)
+        output_path = convert_video_format(input_path, original_filename, target_format)
+        return jsonify({'status': 'Successful', 'file_path': output_path})
+    except Exception as e:
+        return jsonify({'status': 'Failed', 'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
