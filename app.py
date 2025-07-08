@@ -15,7 +15,7 @@ def upload_video():
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         file_path = temp_file.name
         file.save(file_path)
-    metadata = extract_video_metadata(file_path)
+    metadata = extract_video_metadata(file_path, file.filename)
     try:
         os.remove(file_path)
     except PermissionError:
