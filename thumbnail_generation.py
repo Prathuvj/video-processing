@@ -5,6 +5,7 @@ import mimetypes
 from pathlib import Path
 from dotenv import load_dotenv
 from google.genai import Client
+from google.genai.types import Blob
 
 load_dotenv()
 client = Client(api_key=os.getenv("GEMINI_API_KEY"))
@@ -36,56 +37,62 @@ def generate_thumbnail_from_frame(video_path, timestamp, output_name="frame_thum
         
     print("[ERROR] Failed to extract frame from video.")
     return None
-
-
+    
 def generate_thumbnail_using_gemini_from_video(video_path, output_name="ai_thumbnail.jpg"):
-    """Uploads a video to Gemini and generates an AI-enhanced thumbnail."""
+    """Uses Gemini 2.0 preview model to generate a thumbnail from a video."""
+
+    from google.api_core.exceptions import InvalidArgument
+
     print(f"[INFO] Uploading video: {video_path}")
 
-    mime_type, _ = mimetypes.guess_type(video_path)
-    if not mime_type:
-        mime_type = "video/mp4"
-        print(f"[WARN] Could not determine MIME type. Defaulting to '{mime_type}'.")
+    # ✅ Force a correct extension if missing
+    if not video_path.endswith(".mp4"):
+        temp_path = f"{video_path}.mp4"
+        os.rename(video_path, temp_path)
+        video_path = temp_path
+        print(f"[INFO] Renamed temp file to: {video_path}")
 
     try:
-        video_file = client.files.upload(file=video_path, mime_type=mime_type)
+        with open(video_path, "rb") as f:
+            video_file = client.files.upload(file=f)  # ✅ No mime_type
     except Exception as e:
         print(f"[ERROR] Upload failed: {e}")
         return None
 
-    print("[INFO] Waiting for video to finish processing...")
-    while video_file.state.name == "PROCESSING":
-        time.sleep(5)
-        video_file = client.files.get(video_file.name)
-
-    if video_file.state.name == "FAILED":
-        print("[ERROR] Video processing failed.")
-        return None
-
-    print("[INFO] Video uploaded and processed.")
+    print("[INFO] File uploaded to Gemini, calling generate_content...")
 
     try:
         response = client.models.generate_content(
-            model="gemini-1.5-flash",
+            model="gemini-2.0-flash-preview-image-generation",
             contents=[
-                "Generate a compelling and high-quality thumbnail for this video. The thumbnail should be visually striking and represent the key themes of the video.",
-                video_file
+                {
+                    "role": "user",
+                    "parts": [
+                        {
+                            "text": (
+                                "Generate a high-quality, visually compelling thumbnail image "
+                                "that summarizes the key content or theme of this video."
+                            )
+                        },
+                        video_file  # ✅ Uploaded video object
+                    ]
+                }
             ]
         )
-        
-        if response.parts and hasattr(response.parts[0], "inline_data"):
-             image_data = response.parts[0].inline_data.data
-             out_path = Path.home() / "Downloads" / output_name
-             out_path.write_bytes(image_data)
-             print(f"[SUCCESS] AI thumbnail saved to {out_path}")
-             return str(out_path)
-        else:
-             print("[WARN] No image data found in Gemini response. Full response:")
-             print(response)
 
+        if response.parts and hasattr(response.parts[0], "inline_data"):
+            image_data = response.parts[0].inline_data.data
+            out_path = Path.home() / "Downloads" / output_name
+            out_path.write_bytes(image_data)
+            print(f"[SUCCESS] AI thumbnail saved to {out_path}")
+            return str(out_path)
+        else:
+            print("[WARN] No image data in Gemini response.")
+            print(response)
+
+    except InvalidArgument as e:
+        print(f"[ERROR] Gemini request failed: {e}")
     except Exception as e:
-        print(f"[ERROR] Gemini content generation request failed: {e}")
-        client.files.delete(video_file.name)
-        print(f"[INFO] Deleted uploaded file: {video_file.name}")
+        print(f"[ERROR] General exception during Gemini call: {e}")
 
     return None

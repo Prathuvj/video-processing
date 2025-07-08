@@ -1,5 +1,6 @@
 import os
 import tempfile
+import shutil
 from flask import Flask, request, jsonify
 from metadata_extraction import extract_video_metadata
 from format_conversion import convert_video_format
@@ -14,8 +15,8 @@ def upload_video():
     file = request.files['video']
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
-    with tempfile.NamedTemporaryFile(delete=False) as temp_file:
-        file.save(temp_file.name)
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_file:
+        shutil.copyfileobj(file.stream, temp_file)
         metadata = extract_video_metadata(temp_file.name, file.filename)
     os.remove(temp_file.name)
     return jsonify(metadata)
@@ -49,17 +50,19 @@ def generate_thumbnail():
             infile_path = infile.name
         output_path = generate_thumbnail_from_frame(infile_path, timestamp, output_name="frame_thumbnail.jpg")
         return jsonify({'status': 'Successful' if output_path else 'Failed', 'file_path': output_path})
-    
+
     elif mode == 'gemini':
         if 'video' not in request.files:
             return jsonify({'status': 'Failed', 'error': 'video required for gemini mode'}), 400
         file = request.files['video']
-        with tempfile.NamedTemporaryFile(delete=False) as infile:
-            file.save(infile.name)
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as infile:
+            shutil.copyfileobj(file.stream, infile)
             infile_path = infile.name
+
         output_path = generate_thumbnail_using_gemini_from_video(infile_path, file.filename)
         return jsonify({'status': 'Successful' if output_path else 'Failed', 'file_path': output_path})
-    
+
     else:
         return jsonify({'status': 'Failed', 'error': 'Invalid mode'}), 400
 
