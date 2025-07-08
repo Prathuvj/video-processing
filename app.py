@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 import tempfile
 import os
-from metadata import extract_video_metadata
+from metadata_extraction import extract_video_metadata
 
 app = Flask(__name__)
 
