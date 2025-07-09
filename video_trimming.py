@@ -2,6 +2,7 @@ import os
 from moviepy.editor import VideoFileClip
 from pathlib import Path
 
+# Function to trim a video
 def trim_video(input_path, original_filename, start_time, end_time):
     clip = VideoFileClip(input_path).subclip(start_time, end_time)
     base_name = os.path.splitext(original_filename)[0]

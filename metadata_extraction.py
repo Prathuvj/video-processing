@@ -2,6 +2,7 @@ import os
 import cv2
 from moviepy.editor import VideoFileClip
 
+# Function to extract metadata from a video file
 def extract_video_metadata(path, original_filename):
     clip = VideoFileClip(path)
     duration = round(clip.duration, 2)

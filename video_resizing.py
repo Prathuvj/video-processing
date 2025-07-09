@@ -2,6 +2,7 @@ import os
 from moviepy.editor import VideoFileClip
 from pathlib import Path
 
+# Function to resize a video
 def resize_video(input_path, original_filename, target_width, target_height):
     clip = VideoFileClip(input_path)
     resized = clip.resize(newsize=(target_width, target_height))

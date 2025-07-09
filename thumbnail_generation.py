@@ -4,9 +4,11 @@ from pathlib import Path
 from dotenv import load_dotenv
 from google.genai import Client
 
+# Load environment variables and initialize the Gemini client
 load_dotenv()
 client = Client(api_key=os.getenv("GEMINI_API_KEY"))
 
+# Function to extract a single frame from a video
 def generate_thumbnail_from_frame(video_path, timestamp, output_name="frame_thumbnail.jpg"):
     """Extracts a single frame from a video at a specific timestamp and saves it as an image."""
     cap = cv2.VideoCapture(video_path)
@@ -35,6 +37,7 @@ def generate_thumbnail_from_frame(video_path, timestamp, output_name="frame_thum
     print("[ERROR] Failed to extract frame from video.")
     return None
     
+# Function to generate a thumbnail using Gemini
 def generate_thumbnail_using_gemini_from_video(video_path, output_name="ai_thumbnail.jpg"):
     """Uses Gemini 2.0 preview model to generate a thumbnail from a video."""
 

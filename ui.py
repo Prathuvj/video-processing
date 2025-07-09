@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 
+# API URL for backend communication
 API_URL = "http://127.0.0.1:5000"
 
 st.title("🎬 Video Processing App")
@@ -11,6 +12,7 @@ operation = st.selectbox("Choose Operation", [
 
 uploaded_file = st.file_uploader("Upload a video", type=["mp4", "mov", "avi"])
 
+# Perform actions based on the selected operation
 if uploaded_file:
     if operation == "Extract Metadata":
         if st.button("Get Metadata"):
