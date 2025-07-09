@@ -6,6 +6,7 @@ from metadata_extraction import extract_video_metadata
 from format_conversion import convert_video_format
 from thumbnail_generation import generate_thumbnail_from_frame, generate_thumbnail_using_gemini_from_video
 from video_resizing import resize_video
+from video_trimming import trim_video
 
 app = Flask(__name__)
 
@@ -79,6 +80,22 @@ def resize():
             file.save(infile.name)
             infile_path = infile.name
         output_path = resize_video(infile_path, file.filename, width, height)
+        return jsonify({'status': 'Successful', 'file_path': output_path})
+    except Exception as e:
+        return jsonify({'status': 'Failed', 'error': str(e)}), 500
+
+@app.route('/trim', methods=['POST'])
+def trim():
+    if 'video' not in request.files or 'start' not in request.form or 'end' not in request.form:
+        return jsonify({'status': 'Failed', 'error': 'video, start, and end required'}), 400
+    try:
+        file = request.files['video']
+        start = float(request.form['start'])
+        end = float(request.form['end'])
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as infile:
+            file.save(infile.name)
+            infile_path = infile.name
+        output_path = trim_video(infile_path, file.filename, start, end)
         return jsonify({'status': 'Successful', 'file_path': output_path})
     except Exception as e:
         return jsonify({'status': 'Failed', 'error': str(e)}), 500
