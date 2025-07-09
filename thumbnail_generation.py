@@ -42,7 +42,6 @@ def generate_thumbnail_using_gemini_from_video(video_path, output_name="ai_thumb
 
     print(f"[INFO] Uploading video: {video_path}")
 
-    # ✅ Force a correct extension if missing
     if not video_path.endswith(".mp4"):
         temp_path = f"{video_path}.mp4"
         os.rename(video_path, temp_path)
@@ -51,7 +50,7 @@ def generate_thumbnail_using_gemini_from_video(video_path, output_name="ai_thumb
 
     try:
         with open(video_path, "rb") as f:
-            video_file = client.files.upload(file=f)  # ✅ No mime_type
+            video_file = client.files.upload(file=f)
     except Exception as e:
         print(f"[ERROR] Upload failed: {e}")
         return None
@@ -71,7 +70,7 @@ def generate_thumbnail_using_gemini_from_video(video_path, output_name="ai_thumb
                                 "that summarizes the key content or theme of this video."
                             )
                         },
-                        video_file  # ✅ Uploaded video object
+                        video_file
                     ]
                 }
             ]

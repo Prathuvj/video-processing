@@ -84,7 +84,6 @@ def resize():
     except Exception as e:
         return jsonify({'status': 'Failed', 'error': str(e)}), 500
 
-
 @app.route('/trim', methods=['POST'])
 def trim():
     if 'video' not in request.files or 'start' not in request.form or 'end' not in request.form:
@@ -100,7 +99,6 @@ def trim():
         return jsonify({'status': 'Successful', 'file_path': output_path})
     except Exception as e:
         return jsonify({'status': 'Failed', 'error': str(e)}), 500
-
 
 def run_streamlit():
     subprocess.run(["streamlit", "run", "ui.py"])
