@@ -12,6 +12,7 @@ from video_trimming import trim_video
 
 app = Flask(__name__)
 
+#API for metadata extraction
 @app.route('/upload', methods=['POST'])
 def upload_video():
     if 'video' not in request.files:
@@ -25,6 +26,7 @@ def upload_video():
     os.remove(temp_file.name)
     return jsonify(metadata)
 
+#API for format conversion
 @app.route('/convert', methods=['POST'])
 def convert_video():
     if 'video' not in request.files or 'target_format' not in request.form:
@@ -41,6 +43,7 @@ def convert_video():
     except Exception as e:
         return jsonify({'status': 'Failed', 'error': str(e)}), 500
 
+#API for thumbnail generation
 @app.route('/thumbnail', methods=['POST'])
 def generate_thumbnail():
     mode = request.form.get('mode')
@@ -68,6 +71,7 @@ def generate_thumbnail():
     else:
         return jsonify({'status': 'Failed', 'error': 'Invalid mode'}), 400
 
+#API for video resizing
 @app.route('/resize', methods=['POST'])
 def resize():
     if 'video' not in request.files or 'width' not in request.form or 'height' not in request.form:
@@ -84,6 +88,7 @@ def resize():
     except Exception as e:
         return jsonify({'status': 'Failed', 'error': str(e)}), 500
 
+#API for video trimming
 @app.route('/trim', methods=['POST'])
 def trim():
     if 'video' not in request.files or 'start' not in request.form or 'end' not in request.form:
@@ -100,6 +105,7 @@ def trim():
     except Exception as e:
         return jsonify({'status': 'Failed', 'error': str(e)}), 500
 
+#Streamlit Initializatio
 def run_streamlit():
     subprocess.run(["streamlit", "run", "ui.py"])
 
