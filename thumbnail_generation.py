@@ -1,11 +1,8 @@
 import os
 import cv2
-import time
-import mimetypes
 from pathlib import Path
 from dotenv import load_dotenv
 from google.genai import Client
-from google.genai.types import Blob
 
 load_dotenv()
 client = Client(api_key=os.getenv("GEMINI_API_KEY"))
