@@ -75,7 +75,7 @@ def resize():
         file = request.files['video']
         width = int(request.form['width'])
         height = int(request.form['height'])
-        with tempfile.NamedTemporaryFile(delete=False) as infile:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as infile:
             file.save(infile.name)
             infile_path = infile.name
         output_path = resize_video(infile_path, file.filename, width, height)
